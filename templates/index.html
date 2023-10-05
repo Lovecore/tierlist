@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Data</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Optional: Style your HTML to suit your needs */
+        #monthly-snapshots {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .monthly-snapshot {
+            flex: 1;
+            min-width: calc(50% - 1rem);
+        }
+    </style>
+</head>
+<body>
+
+<div id="chart-container" style="width: 50%; margin: auto;">
+    <canvas id="averageChart"></canvas>
+</div>
+
+<div id="monthly-snapshots">
+    <h3>Monthly Snapshots</h3>
+    <canvas id="monthlySnapshotChart" width="400" height="200"></canvas>
+</div>
+<script>
+    // JavaScript for rendering the main chart
+    var averages = {{ averages | tojson }};
+    var ctx = document.getElementById('averageChart').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(averages),
+            datasets: [{
+                label: 'Average Value',
+                data: Object.values(averages),
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+                indexAxis: 'y'
+            }
+    });
+
+    // JavaScript for rendering the monthly snapshot charts
+    var snapshots = {{ snapshots | tojson }};
+    var labels = snapshots.map(snapshot => snapshot.month);  // Get months from the snapshots
+
+    // Assuming all snapshots have the same set of characters
+    var characters = Object.keys(snapshots[0].average_data);  
+    
+    // Sorting characters based on their average value in the first snapshot
+    characters.sort((a, b) => snapshots[0].average_data[b] - snapshots[0].average_data[a]);
+
+    // Get global max and min values for color scaling across all characters and snapshots
+    var allValues = characters.flatMap(character => snapshots.map(snapshot => snapshot.average_data[character]));
+    var max_value = Math.max(...allValues);
+    var min_value = Math.min(...allValues);
+    var colorRange = max_value - min_value;
+
+    var datasets = characters.map(character => {
+        var data = snapshots.map(snapshot => snapshot.average_data[character]);
+
+        // Calculate color based on value
+        var colors = data.map(value => {
+            if (colorRange === 0) {
+                return 'rgba(0, 255, 0, 0.5)';  // Default color when all values are the same
+            }
+            var intensity = ((value - min_value) / colorRange);
+            var red = Math.floor(255 * (1 - intensity));
+            var green = Math.floor(255 * intensity);
+            return `rgba(${red}, ${green}, 0, 0.5)`;  // Adjust color format to your preference
+        });
+
+        return {
+            label: 'Average Value of ' + character,
+            data: data,
+            backgroundColor: colors,
+            borderColor: colors.map(color => color.replace('0.5', '1')),  // Adjust border color opacity
+            borderWidth: 1
+        };
+    });
+
+    var ctxMonthly = document.getElementById('monthlySnapshotChart').getContext('2d');
+    var monthlySnapshotChart = new Chart(ctxMonthly, {
+        type: 'bar',  // Specifying bar chart
+        data: {
+            labels: labels,
+            datasets: datasets
+        },
+            options: {
+                plugins: {
+                    legend: {
+                        display: false  // This hides the legend
+                    }
+                },
+                indexAxis: 'y'
+            }
+        });
+</script>
+<script>
+    // JavaScript for rendering the main chart
+    var averages = {{ averages | tojson }};
+    var labels = Object.keys(averages);
+    var data = Object.values(averages);
+
+    // Sort data and labels together based on the data values
+    var list = [];
+    for (var j = 0; j < labels.length; j++)
+        list.push({'label': labels[j], 'value': data[j]});
+
+    list.sort(function(a, b) {
+        return ((a.value > b.value) ? -1 : ((a.value == b.value) ? 0 : 1));
+    });
+
+    for (var k = 0; k < list.length; k++) {
+        labels[k] = list[k].label;
+        data[k] = list[k].value;
+    }
+
+    // Get max and min values for color scaling
+    var max_value = Math.max(...data);
+    var min_value = Math.min(...data);
+    var colorRange = max_value - min_value;
+
+    // Calculate color based on value
+    var colors = data.map(value => {
+        if (colorRange === 0) {
+            return 'rgba(0, 255, 0, 0.5)';  // Default color when all values are the same
+        }
+        var intensity = ((value - min_value) / colorRange);
+        var red = Math.floor(255 * (1 - intensity));
+        var green = Math.floor(255 * intensity);
+        return `rgba(${red}, ${green}, 0, 0.5)`;  // Adjust color format to your preference
+    });
+
+    var ctx = document.getElementById('averageChart').getContext('2d');
+    var chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Average Value',
+                data: data,
+                backgroundColor: colors,
+                borderColor: colors.map(color => color.replace('0.5', '1')),  // Adjust border color opacity
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y'
+        }
+    });
+</script>
+
+</body>
+</html>

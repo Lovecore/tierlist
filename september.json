@@ -1,0 +1,27 @@
+{
+    "Character": {
+        "Raiden": 5,
+        "Kenshi": 5,
+        "Baraka": 5,
+        "Johnny Cage": 5,
+        "Ashra": 4.17,
+        "Lu Kang": 4,
+        "Mileena": 3.83,
+        "Scorpion": 3.83,
+        "Geras": 3.83,
+        "Shang Tsung": 3.67,
+        "Reiko": 3.33,
+        "Havik": 3.33,
+        "Sindel": 3.17,
+        "Smoke": 3.17,
+        "Kung Lao": 3,
+        "Reptile": 2.83,
+        "Rain": 2.5,
+        "Li Mei": 2.5,
+        "Tanya": 2.17,
+        "Kitana": 2.17,
+        "Shao Kahn": 2,
+        "Subzero": 1.83,
+        "Nitara": 1.67
+    }
+}
